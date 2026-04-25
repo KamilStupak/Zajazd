@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partia Zajazd 💸</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;--accent:#c8f135;--accent2:#ff6b35;--text:#f0f0f0;--muted:#666;--danger:#ff4444}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;padding:24px 16px 90px}
+  header{text-align:center;margin-bottom:28px;padding-top:12px}
+  header h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,8vw,3.5rem);letter-spacing:-2px;line-height:1}
+  header h1 span{color:var(--accent)}
+  header p{color:var(--muted);font-size:.78rem;margin-top:8px;letter-spacing:1px;text-transform:uppercase}
+  .status-line{font-size:.68rem;margin-top:8px;color:var(--muted)}
+  .ok{color:var(--accent)}.warn{color:var(--accent2)}.err{color:var(--danger)}
+  .container{max-width:640px;margin:0 auto}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+  .section-title{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+  .people-input{display:flex;gap:8px;margin-bottom:12px}
+  input[type=text],input[type=number],select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:.85rem;padding:10px 14px;outline:none;transition:border-color .2s}
+  input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--accent)}
+  input[type=text]{flex:1}input[type=number]{width:110px}select{flex:1}
+  .btn{background:var(--accent);border:none;border-radius:8px;color:#0f0f0f;cursor:pointer;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:1px;padding:10px 16px;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap}
+  .btn:hover{opacity:.85;transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent);opacity:1}
+  .btn-danger{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:color .2s}
+  .btn-danger:hover{color:var(--danger)}
+  .people-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{background:var(--surface2);border:1px solid var(--border);border-radius:20px;display:flex;align-items:center;gap:6px;font-size:.8rem;padding:5px 12px}
+  .tag .dot{width:8px;height:8px;border-radius:50%}
+  .expense-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .participants-checkboxes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .check-label{background:var(--surface2);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.78rem;padding:5px 12px;transition:all .15s;user-select:none;display:flex;align-items:center;gap:6px}
+  .check-label input{display:none}.check-label.checked{border-color:var(--accent);color:var(--accent)}
+  .expense-item{border-bottom:1px solid var(--border);padding:12px 0;display:flex;align-items:flex-start;gap:12px;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .expense-item:last-child{border-bottom:none}
+  .expense-icon{font-size:1.3rem;width:36px;height:36px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .expense-info{flex:1;min-width:0}
+  .expense-desc{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:3px}
+  .expense-meta{color:var(--muted);font-size:.72rem}
+  .expense-amount{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--accent2);white-space:nowrap}
+  .balance-grid{display:grid;gap:10px}
+  .balance-item{background:var(--surface2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .balance-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem}
+  .balance-amount{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:500}
+  .balance-amount.positive{color:var(--accent)}.balance-amount.negative{color:var(--accent2)}.balance-amount.zero{color:var(--muted)}
+  .settlement-item{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;font-size:.82rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .settlement-item strong{color:var(--accent2)}.settlement-arrow{color:var(--accent);font-size:1rem}
+  .total-bar{background:var(--surface2);border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .total-bar span{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:1px}
+  .total-bar strong{font-family:'Syne',sans-serif;font-size:1.2rem;color:var(--accent)}
+  .empty-state{color:var(--muted);font-size:.8rem;text-align:center;padding:20px}
+  .c0{background:#c8f135}.c1{background:#ff6b35}.c2{background:#35c8f1}.c3{background:#f135c8}.c4{background:#f1c835}.c5{background:#35f1c8}.c6{background:#c835f1}.c7{background:#f18835}
+  select option{background:#1a1a1a}
+  .save-bar{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:8px;justify-content:center;align-items:center;z-index:100;flex-wrap:wrap}
+  .save-bar .btn{font-size:.72rem;padding:8px 14px}
+  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--accent);color:#0f0f0f;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;padding:9px 20px;border-radius:20px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;z-index:200}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span id="trip-name-display">Partia</span> <span>Zajazd</span></h1>
+    <p>Evidencia výdavkov a rozúčtovanie</p>
+    <div class="status-line" id="status-line">⬤ <span class="warn">Načítavam dáta...</span></div>
+  </header>
+
+  <div class="section">
+    <div class="section-title">Názov výletu</div>
+    <div class="people-input">
+      <input type="text" id="trip-name-input" placeholder="napr. Tatry 2025" value="Partia" onkeydown="if(event.key==='Enter')setTripName()">
+      <button class="btn" onclick="setTripName()">OK</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Účastníci</div>
+    <div class="people-input">
+      <input type="text" id="person-input" placeholder="Meno účastníka..." onkeydown="if(event.key==='Enter')addPerson()">
+      <button class="btn" onclick="addPerson()">+ Pridať</button>
+    </div>
+    <div class="people-tags" id="people-tags"><div class="empty-state" style="padding:8px">Ešte žiadni účastníci</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Pridať výdavok</div>
+    <div class="expense-row">
+      <input type="text" id="exp-desc" placeholder="Popis (napr. Večera)" style="flex:2;min-width:140px" onkeydown="if(event.key==='Enter')addExpense()">
+      <input type="number" id="exp-amount" placeholder="Suma €" min="0" step="0.01">
+    </div>
+    <div class="expense-row" style="margin-bottom:8px">
+      <select id="exp-payer" style="flex:1;min-width:120px"><option value="">— Kto platil —</option></select>
+    </div>
+    <div class="section-title" style="margin-top:4px">Za koho platil:</div>
+    <div class="participants-checkboxes" id="participant-checks">
+      <div class="empty-state" style="padding:4px;text-align:left">Najprv pridaj účastníkov</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-outline" onclick="selectAll()" style="font-size:.72rem;padding:7px 12px">Všetci</button>
+      <button class="btn btn-outline" onclick="selectNone()" style="font-size:.72rem;padding:7px 12px">Nikto</button>
+      <button class="btn" onclick="addExpense()" style="margin-left:auto">+ Zapísať</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Záznamy</div>
+    <div id="expenses-list"><div class="empty-state">Zatiaľ žiadne výdavky</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Zostatky</div>
+    <div class="total-bar"><span>Celkom minuto</span><strong id="total-spent">0,00 €</strong></div>
+    <div class="balance-grid" id="balances"><div class="empty-state">Pridaj výdavky pre výpočet</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Kto komu platí</div>
+    <div id="settlements"><div class="empty-state">Zatiaľ nič na vyrovnanie</div></div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <button class="btn" onclick="manualSave()">💾 Zálohovať .json</button>
+  <label class="btn btn-outline" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+    📂 Načítať zálohu
+    <input type="file" accept=".json" onchange="importJSON(event)" style="display:none">
+  </label>
+  <button class="btn btn-outline" onclick="clearAll()" style="color:#ff6666;border-color:#ff444430;padding:8px 10px">🗑️</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let people=[],expenses=[];
+const COLORS=['c0','c1','c2','c3','c4','c5','c6','c7'];
+const ICONS=['🍽️','🛏️','⛽','🎟️','🛒','🍺','🚗','💳','🏔️','🎉'];
+const DB_NAME='partiaZajazd',DB_VER=1,STORE='data',KEY='state';
+let db=null;
+
+// ── INDEXEDDB ─────────────────────────────────────────────
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{e.target.result.createObjectStore(STORE)};
+    req.onsuccess=e=>{db=e.target.result;res(db)};
+    req.onerror=e=>{rej(e.target.error)};
+  });
+}
+
+function dbSave(data){
+  if(!db)return;
+  const tx=db.transaction(STORE,'readwrite');
+  tx.objectStore(STORE).put(data,KEY);
+}
+
+function dbLoad(){
+  return new Promise((res,rej)=>{
+    if(!db){res(null);return}
+    const tx=db.transaction(STORE,'readonly');
+    const req=tx.objectStore(STORE).get(KEY);
+    req.onsuccess=e=>res(e.target.result||null);
+    req.onerror=e=>rej(e.target.error);
+  });
+}
+
+// ── PERSIST ───────────────────────────────────────────────
+function saveState(){
+  const tripName=document.getElementById('trip-name-input').value||'Partia';
+  const data={tripName,people,expenses,savedAt:new Date().toISOString()};
+  dbSave(data);
+  const t=new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'});
+  setStatus('ok','Uložené automaticky · '+t);
+}
+
+function applyState(data){
+  if(!data)return;
+  if(data.tripName){
+    document.getElementById('trip-name-input').value=data.tripName;
+    document.getElementById('trip-name-display').textContent=data.tripName;
+  }
+  if(Array.isArray(data.people))people=data.people;
+  if(Array.isArray(data.expenses))expenses=data.expenses;
+  renderPeople();renderPayerSelect();renderParticipantChecks();renderExpenses();recalculate();
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function setStatus(cls,msg){document.getElementById('status-line').innerHTML='⬤ <span class="'+cls+'">'+msg+'</span>'}
+function setTripName(){const v=document.getElementById('trip-name-input').value.trim();if(v){document.getElementById('trip-name-display').textContent=v;saveState()}}
+
+function addPerson(){
+  const inp=document.getElementById('person-input'),name=inp.value.trim();
+  if(!name||people.includes(name))return;
+  people.push(name);inp.value='';
+  renderPeople();renderPayerSelect();renderParticipantChecks();recalculate();saveState();
+}
+
+function removePerson(name){
+  if(expenses.some(e=>e.payer===name||e.participants.includes(name))){alert(name+' má záznamy. Najprv ich vymaž.');return}
+  people=people.filter(p=>p!==name);
+  renderPeople();renderPayerSelect();renderParticipantChecks();recalculate();saveState();
+}
+
+function renderPeople(){
+  const el=document.getElementById('people-tags');
+  if(!people.length){el.innerHTML='<div class="empty-state" style="padding:8px">Ešte žiadni účastníci</div>';return}
+  el.innerHTML=people.map((p,i)=>'<div class="tag"><span class="dot '+COLORS[i%8]+'"></span>'+p+'<button class="btn-danger" onclick="removePerson(\''+p+'\')" style="padding:0 4px;font-size:.75rem">✕</button></div>').join('');
+}
+
+function renderPayerSelect(){
+  const sel=document.getElementById('exp-payer'),cur=sel.value;
+  sel.innerHTML='<option value="">— Kto platil —</option>'+people.map(p=>'<option value="'+p+'"'+(p===cur?' selected':'')+'>'+p+'</option>').join('');
+}
+
+function renderParticipantChecks(){
+  const el=document.getElementById('participant-checks');
+  if(!people.length){el.innerHTML='<div class="empty-state" style="padding:4px;text-align:left">Najprv pridaj účastníkov</div>';return}
+  el.innerHTML=people.map((p,i)=>'<label class="check-label checked"><input type="checkbox" value="'+p+'" checked onchange="toggleCheck(this)"><span class="dot '+COLORS[i%8]+'"></span>'+p+'</label>').join('');
+}
+
+function toggleCheck(cb){cb.closest('.check-label').classList.toggle('checked',cb.checked)}
+function selectAll(){document.querySelectorAll('#participant-checks input').forEach(cb=>{cb.checked=true;cb.closest('.check-label').classList.add('checked')})}
+function selectNone(){document.querySelectorAll('#participant-checks input').forEach(cb=>{cb.checked=false;cb.closest('.check-label').classList.remove('checked')})}
+
+function addExpense(){
+  const desc=document.getElementById('exp-desc').value.trim();
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const payer=document.getElementById('exp-payer').value;
+  const parts=[...document.querySelectorAll('#participant-checks input:checked')].map(c=>c.value);
+  if(!desc){alert('Zadaj popis');return}
+  if(!amount||amount<=0){alert('Zadaj sumu');return}
+  if(!payer){alert('Vyber kto platil');return}
+  if(!parts.length){alert('Vyber za koho platil');return}
+  expenses.push({id:Date.now(),desc,amount,payer,participants:parts,icon:ICONS[Math.floor(Math.random()*ICONS.length)]});
+  document.getElementById('exp-desc').value='';
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-payer').value='';
+  selectAll();renderExpenses();recalculate();saveState();
+  showToast('✅ Zapísané a uložené!');
+}
+
+function removeExpense(id){
+  if(!confirm('Vymazať?'))return;
+  expenses=expenses.filter(e=>e.id!==id);
+  renderExpenses();recalculate();saveState();
+}
+
+function renderExpenses(){
+  const el=document.getElementById('expenses-list');
+  if(!expenses.length){el.innerHTML='<div class="empty-state">Zatiaľ žiadne výdavky</div>';return}
+  el.innerHTML=[...expenses].reverse().map(e=>'<div class="expense-item"><div class="expense-icon">'+e.icon+'</div><div class="expense-info"><div class="expense-desc">'+e.desc+'</div><div class="expense-meta">Platil: <b>'+e.payer+'</b> · Za: '+e.participants.join(', ')+'</div></div><div style="display:flex;align-items:center;gap:8px"><div class="expense-amount">'+e.amount.toFixed(2)+' €</div><button class="btn-danger" onclick="removeExpense('+e.id+')">✕</button></div></div>').join('');
+}
+
+function recalculate(){
+  const bal={};people.forEach(p=>bal[p]=0);
+  expenses.forEach(e=>{const s=e.amount/e.participants.length;bal[e.payer]+=e.amount;e.participants.forEach(p=>bal[p]-=s)});
+  document.getElementById('total-spent').textContent=fmt(expenses.reduce((s,e)=>s+e.amount,0));
+
+  const balEl=document.getElementById('balances');
+  if(!people.length){balEl.innerHTML='<div class="empty-state">Pridaj výdavky pre výpočet</div>'}
+  else balEl.innerHTML=people.map((p,i)=>{
+    const b=bal[p]||0,cls=b>0.005?'positive':b<-0.005?'negative':'zero';
+    const lbl=b>0.005?'dostane '+fmt(b):b<-0.005?'dlhuje '+fmt(-b):'vyrovnaný ✓';
+    return '<div class="balance-item"><div style="display:flex;align-items:center;gap:10px"><span class="dot '+COLORS[i%8]+'" style="width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0"></span><span class="balance-name">'+p+'</span></div><span class="balance-amount '+cls+'">'+lbl+'</span></div>';
+  }).join('');
+
+  const cr=people.filter(p=>bal[p]>0.005).map(p=>({name:p,amount:bal[p]}));
+  const dr=people.filter(p=>bal[p]<-0.005).map(p=>({name:p,amount:-bal[p]}));
+  const st=[];const c=cr.map(x=>({...x})),d=dr.map(x=>({...x}));
+  let ci=0,di=0;
+  while(ci<c.length&&di<d.length){
+    const pay=Math.min(c[ci].amount,d[di].amount);
+    if(pay>0.005)st.push({from:d[di].name,to:c[ci].name,amount:pay});
+    c[ci].amount-=pay;d[di].amount-=pay;
+    if(c[ci].amount<0.005)ci++;if(d[di].amount<0.005)di++;
+  }
+  const sEl=document.getElementById('settlements');
+  sEl.innerHTML=st.length?st.map(s=>'<div class="settlement-item"><strong>'+s.from+'</strong><span class="settlement-arrow">→</span><strong>'+s.to+'</strong><span style="margin-left:auto;color:var(--accent);font-weight:700">'+fmt(s.amount)+'</span></div>').join(''):'<div class="empty-state">Zatiaľ nič na vyrovnanie</div>';
+}
+
+function fmt(n){return n.toFixed(2).replace('.',',')+' €'}
+
+function manualSave(){
+  const tripName=document.getElementById('trip-name-input').value||'Partia';
+  const data={tripName,people,expenses,savedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=tripName.replace(/\s+/g,'_')+'_zaloha.json';a.click();
+  URL.revokeObjectURL(url);showToast('💾 Záloha stiahnutá!');
+}
+
+function importJSON(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data.people)||!Array.isArray(data.expenses))throw new Error();
+      applyState(data);saveState();
+      const t=data.savedAt?new Date(data.savedAt).toLocaleString('sk-SK',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'?';
+      setStatus('ok','Načítané zo zálohy · '+t);
+      showToast('✅ Záloha načítaná!');
+    }catch{showToast('❌ Neplatný súbor!')}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+function clearAll(){
+  if(!confirm('Vymazať VŠETKY dáta?'))return;
+  people=[];expenses=[];
+  document.getElementById('trip-name-input').value='Partia';
+  document.getElementById('trip-name-display').textContent='Partia';
+  renderPeople();renderPayerSelect();renderParticipantChecks();renderExpenses();recalculate();
+  saveState();setStatus('warn','Všetko vymazané');showToast('🗑️ Vymazané');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── INIT ──────────────────────────────────────────────────
+openDB().then(async()=>{
+  const data=await dbLoad();
+  if(data){
+    applyState(data);
+    const t=data.savedAt?new Date(data.savedAt).toLocaleString('sk-SK',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'?';
+    setStatus('ok','Obnovené · '+t);
+  }else{
+    setStatus('ok','Pripravené — dáta sa ukladajú automaticky');
+  }
+}).catch(()=>{
+  setStatus('err','IndexedDB nedostupné — použi zálohu (.json)');
+});
+</script>
+</body>
+</html>
